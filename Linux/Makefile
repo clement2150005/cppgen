@@ -1,49 +1,50 @@
-NAME    = cppgen
-CC      = cc
-SRC     = cppgen.c
-OBJ     = $(SRC:.c=.o)
+NAMES    = cppgen cppclass
+CC       = cc
+SRCS     = cppgen.c cppclass.c
+OBJS     = $(SRCS:.c=.o)
 CPPGEN_PATH = $(shell pwd)
-CFLAGS  = -Wall -Wextra -Werror -DCPPGEN_PATH=\"$(CPPGEN_PATH)\"
-LDFLAGS = -lncurses
+CFLAGS   = -Wall -Wextra -Werror -DCPPGEN_PATH=\"$(CPPGEN_PATH)\"
+LDFLAGS  = -lncurses
 
-GREEN   = \033[0;32m
-YELLOW  = \033[1;33m
-RESET   = \033[0m
+GREEN    = \033[0;32m
+YELLOW   = \033[1;33m
+RESET    = \033[0m
 
-all: $(NAME) alias
+all: $(NAMES) alias
 
-$(NAME): $(OBJ)
-	$(CC) $(OBJ) -o $(NAME) $(LDFLAGS)
+$(NAMES): %: %.o
+	$(CC) $< -o $@ $(LDFLAGS)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(OBJ)
+	rm -f $(OBJS)
 
 fclean: clean
-	rm -f $(NAME)
+	rm -f $(NAMES)
 
 re: fclean all
 
 alias:
 	@ADDED=0; \
-	ALIAS_LINE="alias cppgen='$(CPPGEN_PATH)/$(NAME)'"; \
-	for file in $$HOME/.zshrc $$HOME/.bashrc; do \
-		if [ -f $$file ]; then \
-			if ! grep -qxF "$$ALIAS_LINE" $$file; then \
-				echo "$$ALIAS_LINE" >> $$file; \
-				ADDED=1; \
+	for name in $(NAMES); do \
+		ALIAS_LINE="alias $$name='$(CPPGEN_PATH)/$$name'"; \
+		for file in $$HOME/.zshrc $$HOME/.bashrc; do \
+			if [ -f $$file ]; then \
+				if ! grep -qxF "$$ALIAS_LINE" $$file; then \
+					echo "$$ALIAS_LINE" >> $$file; \
+					ADDED=1; \
+				fi; \
 			fi; \
-		fi; \
+		done; \
 	done; \
 	if [ $$ADDED -eq 1 ]; then \
-		printf "$(GREEN)✔ Alias added to your shell config.$(RESET)\n"; \
+		printf "$(GREEN)✔ Aliases added to your shell config.$(RESET)\n"; \
 		printf "$(YELLOW)➡ Run: source ~/.zshrc or source ~/.bashrc$(RESET)\n"; \
-		printf "$(YELLOW)➡ Then use the command: cppgen$(RESET)\n"; \
+		printf "$(YELLOW)➡ Then use the commands: cppgen / cppclass$(RESET)\n"; \
 	else \
-		printf "$(GREEN)✔ Alias already present. You can use: cppgen folder_name$(RESET)\n"; \
+		printf "$(GREEN)✔ Aliases already present. You can use: cppgen / cppclass$(RESET)\n"; \
 	fi
 
 .PHONY: all clean fclean re alias
-
